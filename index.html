@@ -1,995 +1,270 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NKU Executive Dashboard — Workforce Signals for AI Literacy</title>
-
-  <!-- Chart.js -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NKU AI Skills Demand Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
   <style>
-    :root{
-      --bg:#f6f8fc;
-      --surface:#ffffff;
-      --text:#0f172a;
-      --muted:#475569;
-      --muted2:#64748b;
-      --border:#dbe3ef;
-      --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-      --accent:#2563eb;
-      --accent2:#1d4ed8;
-
-      /* NKU-ish accents (subtle, optional) */
-      --gold:#FFC72C;
-      --success:#16a34a;
-      --warn:#f59e0b;
-      --danger:#ef4444;
-      --chip:#eef2ff;
+    :root {
+      --bg: #ffffff;
+      --text: #121212;
+      --muted: #616161;
+      --border: #e4e4e7;
+      --gold: #FFC72C;
+      --gold-dark: #d9a200;
+      --panel: #fafafa;
     }
-
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    body {
+      margin: 0;
       background: var(--bg);
       color: var(--text);
-      line-height:1.55;
+      font-family: "Segoe UI", Arial, sans-serif;
     }
-
-    a{ color:var(--accent2); text-decoration:none; }
-    a:hover{ text-decoration:underline; }
-
-    .wrap{ max-width: 1200px; margin: 0 auto; padding: 22px 18px 60px; }
-    .topbar{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:14px; flex-wrap:wrap;
-      margin-bottom:14px;
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
     }
-    .brand{
-      display:flex; align-items:center; gap:10px;
-      font-weight:800; letter-spacing:-0.02em;
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 3px solid var(--gold);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
     }
-    .brand-badge{
-      width:34px; height:34px; border-radius:10px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      box-shadow: var(--shadow);
-      position:relative;
-      overflow:hidden;
-    }
-    .brand-badge:after{
-      content:"";
-      position:absolute; inset:-10px;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 55%);
-      transform: rotate(18deg);
-    }
-
-    .toolbar{
-      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-      color:var(--muted);
-      font-size: 13px;
-    }
-
-    .btn{
-      display:inline-flex; align-items:center; gap:8px;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      border-radius: 12px;
-      box-shadow: 0 8px 18px rgba(15,23,42,.06);
-      cursor:pointer;
-      color: var(--text);
-      font-weight: 650;
-      font-size: 13px;
-    }
-    .btn:hover{ border-color:#cbd5e1; }
-    .btn.primary{
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color:#fff;
-      border-color: transparent;
-    }
-
-    .hero{
-      background: var(--surface);
-      border:1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 20px 18px;
-      display:grid;
-      grid-template-columns: 1.3fr .7fr;
-      gap: 16px;
-      margin-bottom: 14px;
-    }
-    @media (max-width: 920px){
-      .hero{ grid-template-columns: 1fr; }
-    }
-    .hero h1{
-      margin:0 0 8px;
-      font-size: clamp(22px, 2.6vw, 32px);
-      letter-spacing:-0.03em;
-      line-height:1.15;
-    }
-    .hero p{
-      margin: 0 0 12px;
-      color: var(--muted);
-      max-width: 68ch;
-    }
-    .pillrow{ display:flex; flex-wrap:wrap; gap:8px; }
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding: 7px 10px;
-      border-radius: 999px;
-      background: var(--chip);
-      border: 1px solid #e0e7ff;
-      color: #1e3a8a;
-      font-weight: 650;
-      font-size: 12px;
-    }
-    .pill .dot{
-      width:8px; height:8px; border-radius:99px; background: var(--accent2);
-    }
-
-    .hero-right{
-      border-left: 1px dashed #dbe3ef;
-      padding-left: 16px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      justify-content:center;
-    }
-    @media (max-width: 920px){
-      .hero-right{ border-left:none; padding-left:0; border-top:1px dashed #dbe3ef; padding-top:12px; }
-    }
-
-    .takeaway{
-      background: #0b1220;
-      color:#e5e7eb;
-      border-radius: 16px;
-      padding: 14px 14px;
-      position:relative;
-      overflow:hidden;
-    }
-    .takeaway:before{
-      content:"";
-      position:absolute;
-      inset:-40px;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.12), transparent 55%),
-                  radial-gradient(circle at 80% 20%, rgba(255,199,44,.18), transparent 50%);
-      transform: rotate(10deg);
-    }
-    .takeaway > *{ position:relative; }
-    .takeaway .kicker{
-      font-size: 12px;
-      color: #a7f3d0;
-      letter-spacing:.08em;
-      text-transform: uppercase;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-    .takeaway .big{
-      font-size: 14px;
-      font-weight: 750;
-      margin:0 0 6px;
-    }
-    .takeaway .small{
-      margin:0;
-      font-size: 12.5px;
-      color:#cbd5e1;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-
-    .panel{
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 16px 16px;
-    }
-    .panel h2{
-      margin:0 0 8px;
-      font-size: 16px;
-      letter-spacing:-0.01em;
-    }
-    .panel p{ margin: 0 0 10px; color: var(--muted); }
-
-    .kpis{
-      display:grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 10px;
-      margin-top: 10px;
-    }
-    @media (max-width: 1100px){
-      .kpis{ grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (max-width: 640px){
-      .kpis{ grid-template-columns: repeat(2, 1fr); }
-    }
-
-    .kpi{
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 12px 12px;
-      background: linear-gradient(180deg, #ffffff, #fbfdff);
-      min-height: 96px;
-    }
-    .kpi .top{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      margin-bottom: 6px;
-    }
-    .kpi .label{
-      font-size: 12px; color: var(--muted2); font-weight: 700;
-      display:flex; align-items:center; gap:8px;
-    }
-    .kpi .label .i{
-      width:18px; height:18px; border-radius:99px;
-      background:#eef2ff;
-      border:1px solid #e0e7ff;
-      color:#1e3a8a;
-      display:grid; place-items:center;
-      font-size:12px;
-      cursor:pointer;
-      user-select:none;
-    }
-    .kpi .value{
-      font-size: 22px; font-weight: 900; letter-spacing:-0.03em;
-    }
-    .kpi .delta{
-      font-size: 12px; font-weight: 800;
-      margin-top: 2px;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: #fff;
-      color: var(--muted);
-    }
-    .kpi.good .delta{ color: var(--success); border-color: rgba(22,163,74,.25); background: rgba(22,163,74,.06); }
-    .kpi.warn .delta{ color: var(--warn); border-color: rgba(245,158,11,.25); background: rgba(245,158,11,.06); }
-
-    .row2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      align-items:stretch;
-    }
-    @media (max-width: 900px){
-      .row2{ grid-template-columns: 1fr; }
-    }
-
-    .chartbox{
-      border:1px solid var(--border);
-      border-radius: 18px;
-      padding: 12px 12px;
-      background: #fff;
-      min-height: 320px;
-    }
-    .charthead{
-      display:flex; align-items:flex-start; justify-content:space-between;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-    .charthead .meta{
-      color: var(--muted);
-      font-size: 12.5px;
-      margin-top: 2px;
-    }
-
-    .controls{
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
-      margin-top: 6px;
-    }
-    select{
-      padding: 9px 10px;
-      border-radius: 12px;
-      border:1px solid var(--border);
-      background: var(--surface);
-      font-weight: 650;
-      color: var(--text);
-    }
-
-    .notice{
-      border: 1px solid #fde68a;
-      background: #fffbeb;
-      color: #92400e;
-      padding: 10px 12px;
-      border-radius: 14px;
-      font-weight: 650;
-      font-size: 13px;
-      display:none;
-      margin-top: 10px;
-    }
-
-    .actions{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 10px;
-    }
-    @media (max-width: 900px){
-      .actions{ grid-template-columns: 1fr; }
-    }
-    .action{
-      border:1px solid var(--border);
-      border-radius: 16px;
-      padding: 12px;
-      background: linear-gradient(180deg, #ffffff, #fbfdff);
-    }
-    .action .t{
-      font-weight: 900;
-      letter-spacing:-0.02em;
-      margin:0 0 6px;
-    }
-    .action .d{
-      margin:0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    /* Modal */
-    dialog{
-      border:none;
-      border-radius: 18px;
-      padding: 0;
-      width: min(720px, calc(100vw - 32px));
-      box-shadow: 0 30px 80px rgba(15,23,42,.30);
-      overflow:hidden;
-    }
-    dialog::backdrop{
-      background: rgba(15,23,42,.45);
-      backdrop-filter: blur(4px);
-    }
-    .modal-h{
-      padding: 14px 16px;
-      background: #0b1220;
-      color:#fff;
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-    }
-    .modal-h strong{ letter-spacing:-0.02em; }
-    .modal-b{
-      padding: 14px 16px;
-      background: #fff;
-      color: var(--text);
-    }
-    .modal-b ul{ margin: 8px 0 0 18px; color: var(--muted); }
-    .modal-close{
-      border:1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.10);
-      color:#fff;
-      border-radius: 12px;
+    h1 { margin: 0; font-size: 1.6rem; }
+    .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    select, button {
       padding: 8px 10px;
-      cursor:pointer;
-      font-weight: 750;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
     }
+    button {
+      background: var(--gold);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { background: var(--gold-dark); }
+    .meta { color: var(--muted); font-size: 0.9rem; }
 
-    footer{
-      margin-top: 18px;
-      color: var(--muted2);
-      font-size: 12.5px;
-      text-align:center;
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 12px;
+      margin: 12px 0 18px;
     }
-    .tiny{
-      font-size: 12px;
-      color: var(--muted2);
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--gold);
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 86px;
+    }
+    .card .label { color: var(--muted); font-size: 0.84rem; }
+    .card .value { font-size: 1.4rem; font-weight: 700; margin-top: 6px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fff;
+    }
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+    .empty, .error {
+      padding: 10px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-size: 0.9rem;
+    }
+    .empty { background: #fff8e1; border: 1px solid #ffe082; }
+    .error { background: #ffebee; border: 1px solid #ef9a9a; }
+
+    .std-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin-top: 12px;
+    }
+    .std-table th, .std-table td {
+      border: 1px solid var(--border);
+      padding: 8px;
+      text-align: left;
+    }
+    .std-table th { background: #f8f8f8; }
+
+    @media (max-width: 900px) {
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand" aria-label="NKU Executive Dashboard">
-        <div class="brand-badge" aria-hidden="true"></div>
-        <div>
-          <div style="font-size:13px;color:var(--muted2);font-weight:800;letter-spacing:.08em;text-transform:uppercase;">
-            NKU Executive Dashboard
-          </div>
-          <div style="font-size:16px;font-weight:900;letter-spacing:-0.02em;">
-            Workforce Signals for AI Literacy
-          </div>
-        </div>
-      </div>
-
-      <div class="toolbar" role="status" aria-live="polite">
-        <span id="lastRefresh">Last refresh: —</span>
-        <span>·</span>
-        <span id="blendStatus">Blended sources: USAJOBS + Adzuna + Remotive (via Worker)</span>
-        <button class="btn" id="btnMethods">Methods & Sources</button>
-        <button class="btn" id="btnPrint">Print / PDF</button>
-        <button class="btn primary" id="btnRefresh">Force refresh</button>
-      </div>
-    </div>
-
-    <!-- HERO: positive framing -->
-    <section class="hero" aria-label="Executive framing">
+  <div class="container">
+    <div class="header">
       <div>
-        <h1>AI Skills Demand — A Positive Signal for NKU’s Next Step</h1>
-        <p>
-          This dashboard translates current job-posting language into a simple story:
-          <strong>AI is becoming a basic workplace literacy</strong> (like data, writing, or spreadsheets).
-          That’s good news for NKU — it creates a clear opportunity to lead with
-          <strong>responsible, student-centered AI Literacy</strong> that strengthens employability and protects academic integrity.
-        </p>
-
-        <div class="pillrow" aria-label="Key positioning">
-          <span class="pill"><span class="dot" aria-hidden="true"></span>Student readiness</span>
-          <span class="pill"><span class="dot" aria-hidden="true"></span>Workforce alignment</span>
-          <span class="pill"><span class="dot" aria-hidden="true"></span>Responsible use &amp; integrity</span>
-          <span class="pill"><span class="dot" aria-hidden="true"></span>Cross-disciplinary impact</span>
-        </div>
-
-        <div class="controls" aria-label="Filters" style="margin-top:12px;">
-          <label class="tiny" for="lensSelect" style="font-weight:800;color:var(--muted);">Lens</label>
-          <select id="lensSelect">
-            <option value="all" selected>All programs</option>
-            <option value="business">Business</option>
-            <option value="informatics">Informatics</option>
-            <option value="health">Health</option>
-          </select>
-
-          <label class="tiny" for="regionSelect" style="font-weight:800;color:var(--muted);">Region</label>
+        <h1>AI Skills Demand Dashboard</h1>
+        <div class="meta" id="lastUpdated">Last updated: --</div>
+      </div>
+      <div class="controls">
+        <label>Region
           <select id="regionSelect">
-            <option value="any" selected>All locations</option>
-            <option value="ohky">OH/KY (regional relevance)</option>
-            <option value="remote">Remote/telework emphasis</option>
+            <option value="all">All</option>
+            <option value="KY">KY</option>
+            <option value="OH">OH</option>
+            <option value="IN">IN</option>
           </select>
-        </div>
-
-        <div class="notice" id="dataNotice"></div>
+        </label>
+        <label>Window
+          <select id="windowSelect">
+            <option value="30">30 days</option>
+            <option value="90">90 days</option>
+          </select>
+        </label>
+        <button id="refreshBtn">Refresh</button>
       </div>
-
-      <div class="hero-right">
-        <div class="takeaway">
-          <div class="kicker">NKU Opportunity</div>
-          <p class="big">Lead the region with AI Literacy that is ethical, practical, and employer-aligned.</p>
-          <p class="small">
-            The market signals below help prioritize:
-            common skill language, cross-disciplinary needs, and where internships &amp; partnerships should focus.
-          </p>
-        </div>
-
-        <div class="takeaway" style="background:#0a1a10;">
-          <div class="kicker" style="color:#bbf7d0;">Responsible framing</div>
-          <p class="big">AI Literacy reduces risk — it doesn’t increase it.</p>
-          <p class="small">
-            Teaching “how to use AI well” supports integrity, transparency, and critical thinking — the university advantage.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Academic-ready reading guide (reframed positively) -->
-    <section class="panel" aria-label="Academic-ready reading guide">
-      <h2>Academic-ready reading guide (positive framing)</h2>
-      <p>
-        Use this dashboard to support confident conversations about <strong>curriculum modernization</strong>,
-        <strong>employer partnerships</strong>, and <strong>student success</strong>.
-        The goal is not “more AI everywhere.” The goal is <strong>intentional AI Literacy</strong> — skills, judgment,
-        and responsible habits that make NKU graduates stronger.
-      </p>
-
-      <div class="actions" aria-label="What NKU can do next">
-        <div class="action">
-          <p class="t">1) Establish a common AI Literacy baseline</p>
-          <p class="d">A shared foundation (terminology, prompting, verification, ethics) improves consistency across colleges and reduces confusion for students and faculty.</p>
-        </div>
-        <div class="action">
-          <p class="t">2) Embed “use + critique” into assignments</p>
-          <p class="d">Students learn to document AI use, evaluate outputs, cite sources, and demonstrate what they personally understand.</p>
-        </div>
-        <div class="action">
-          <p class="t">3) Convert employer language into pathways</p>
-          <p class="d">Use Top Skills + Category Mix to identify micro-credentials, project modules, and internship targets aligned to demand.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- KPI Strip -->
-    <section class="panel" aria-label="KPI strip">
-      <h2>Market snapshot (directional signals)</h2>
-      <p>
-        These indicators summarize what employers are asking for in AI-related postings.
-        They are designed to be <strong>actionable and optimistic</strong>:
-        “Here’s where NKU can lead and support students.”
-      </p>
-
-      <div class="kpis">
-        <div class="kpi good" id="kpiAIShare">
-          <div class="top">
-            <div class="label">AI-signal share <span class="i" data-help="aiShare" title="What is this?">?</span></div>
-          </div>
-          <div class="value" id="aiShareValue">—</div>
-          <div class="delta" id="aiShareDelta">▲ — pts</div>
-        </div>
-
-        <div class="kpi" id="kpiSample">
-          <div class="top">
-            <div class="label">AI postings (sample) <span class="i" data-help="sample" title="What is this?">?</span></div>
-          </div>
-          <div class="value" id="sampleValue">—</div>
-          <div class="delta" id="sampleNote">Deduped across sources</div>
-        </div>
-
-        <div class="kpi good" id="kpiRegional">
-          <div class="top">
-            <div class="label">Regional relevance (OH/KY) <span class="i" data-help="regional" title="What is this?">?</span></div>
-          </div>
-          <div class="value" id="regionalValue">—</div>
-          <div class="delta" id="regionalDelta">▲ — pts</div>
-        </div>
-
-        <div class="kpi good" id="kpiRemote">
-          <div class="top">
-            <div class="label">Remote opportunity <span class="i" data-help="remote" title="What is this?">?</span></div>
-          </div>
-          <div class="value" id="remoteValue">—</div>
-          <div class="delta" id="remoteDelta">▲ — pts</div>
-        </div>
-
-        <div class="kpi warn" id="kpiNonDev">
-          <div class="top">
-            <div class="label">Cross-disciplinary share <span class="i" data-help="nonDev" title="What is this?">?</span></div>
-          </div>
-          <div class="value" id="nonDevValue">—</div>
-          <div class="delta" id="nonDevDelta">▲ — pts</div>
-        </div>
-
-        <div class="kpi good" id="kpiFresh">
-          <div class="top">
-            <div class="label">New postings (14 days) <span class="i" data-help="fresh" title="What is this?">?</span></div>
-          </div>
-          <div class="value" id="freshValue">—</div>
-          <div class="delta" id="freshDelta">▲ count</div>
-        </div>
-      </div>
-
-      <p class="tiny" style="margin-top:10px;">
-        <strong>Important:</strong> This is a directional workforce signal. It supports prioritization and conversations;
-        it is not an official labor taxonomy.
-      </p>
-    </section>
-
-    <!-- Charts -->
-    <div class="row2" aria-label="Trend and skills">
-      <section class="panel">
-        <h2>Trend over time (last 12 months)</h2>
-        <p>Helpful for “is demand rising?” conversations and for timing employer outreach.</p>
-        <div class="chartbox">
-          <div class="charthead">
-            <div>
-              <strong>AI-matched postings over time</strong>
-              <div class="meta" id="trendMeta">Monthly counts (within selected lens)</div>
-            </div>
-            <div class="meta">Trend notes: missing dates reduce precision.</div>
-          </div>
-          <canvas id="trendChart" height="220" aria-label="Trend chart"></canvas>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>Top skill signals (transparent map)</h2>
-        <p>These are phrase mentions in titles/descriptions—great for curriculum modules and micro-credentials.</p>
-        <div class="chartbox">
-          <div class="charthead">
-            <div>
-              <strong>Skill phrase mentions</strong>
-              <div class="meta" id="skillsMeta">Counts of skill phrases from postings</div>
-            </div>
-            <div class="meta"><button class="btn" id="btnSkillsMap">View skill map</button></div>
-          </div>
-          <canvas id="skillsChart" height="220" aria-label="Skills chart"></canvas>
-        </div>
-      </section>
     </div>
 
-    <section class="panel" aria-label="Where the jobs are">
-      <h2>Where the jobs are (category mix)</h2>
-      <p>
-        Category distribution for AI-matched postings (blended across sources) mapped into an NKU-friendly taxonomy.
-        This is a strong way to show that AI literacy is not “just a computing issue.”
-      </p>
-      <div class="chartbox">
-        <div class="charthead">
-          <div>
-            <strong>Job categories</strong>
-            <div class="meta" id="catsMeta">Source: Blended (USAJOBS + Adzuna + Remotive) · Categories normalized for executive readability.</div>
-          </div>
-        </div>
-        <canvas id="catsChart" height="220" aria-label="Job categories chart"></canvas>
-      </div>
-    </section>
+    <div id="errorState" class="error" style="display:none"></div>
+    <div id="emptyState" class="empty" style="display:none">No aggregated data found for this filter.</div>
 
-    <footer>
-      Built for executive conversations: positive, evidence-based, and action-oriented.
-      <div class="tiny">Tip: Use “Print / PDF” for a one-page share-out before meetings.</div>
-    </footer>
+    <div class="kpis">
+      <div class="card"><div class="label">Total postings</div><div class="value" id="kpiTotal">--</div></div>
+      <div class="card"><div class="label">% change vs prior window</div><div class="value" id="kpiChange">--</div></div>
+      <div class="card"><div class="label">Top skill</div><div class="value" id="kpiTopSkill">--</div></div>
+      <div class="card"><div class="label">Fastest growing skill</div><div class="value" id="kpiFastest">--</div></div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Top AI skills demanded</h2>
+        <canvas id="skillsBar"></canvas>
+      </div>
+      <div class="panel">
+        <h2>Skills trendline (using aggregate counts)</h2>
+        <canvas id="skillsTrend"></canvas>
+      </div>
+      <div class="panel">
+        <h2>Top job families</h2>
+        <canvas id="familiesBar"></canvas>
+      </div>
+      <div class="panel">
+        <h2>Curriculum coverage vs demand gap</h2>
+        <canvas id="gapBar"></canvas>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:14px;">
+      <h2>Standards / Framework Lens (slow-changing reference table)</h2>
+      <table class="std-table">
+        <thead>
+          <tr><th>Framework</th><th>Category</th><th>Example skills</th><th>Last reviewed</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>NIST AI RMF</td><td>Governance / Risk</td><td>Governance, Risk, Bias, Compliance</td><td>Quarterly</td></tr>
+          <tr><td>OECD AI Principles</td><td>Transparency / Accountability</td><td>Privacy, Responsible AI, Human oversight</td><td>Quarterly</td></tr>
+          <tr><td>ISO/IEC 42001</td><td>AI Management Systems</td><td>Controls, documentation, monitoring</td><td>Bi-annual</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- Modal -->
-  <dialog id="modal">
-    <div class="modal-h">
-      <strong id="modalTitle">Details</strong>
-      <button class="modal-close" id="modalClose">Close</button>
-    </div>
-    <div class="modal-b" id="modalBody"></div>
-  </dialog>
-
   <script>
-    /* ==========================================================
-       NKU Executive Dashboard — Positive AI Literacy Framing
-       - Keeps it exec-friendly + optimistic
-       - Safe if data doesn’t load (shows clear message)
-       - Transparent “methods” + skill map
-       ========================================================== */
+    const WORKER_BASE = 'https://<worker-domain>';
+    const charts = {};
 
-    // If your repo uses a different file name, change this:
-    const DATA_URL = "./data.json";
-
-    const charts = { trend:null, skills:null, cats:null };
-    const $ = (sel, root=document) => root.querySelector(sel);
-
-    const state = {
-      raw: null,
-      lens: "all",
-      region: "any",
-      lastUpdatedISO: null
-    };
-
-    function fmtPct(x){
-      if (x === null || x === undefined || Number.isNaN(x)) return "—";
-      return `${Math.round(x)}%`;
-    }
-    function fmtNum(x){
-      if (x === null || x === undefined || Number.isNaN(x)) return "—";
-      return x.toLocaleString();
+    async function fetchDashboard(region, windowDays) {
+      const url = `${WORKER_BASE}/dashboard-summary?region=${encodeURIComponent(region)}&window=${encodeURIComponent(windowDays)}`;
+      const resp = await fetch(url, { method: 'GET' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      return resp.json();
     }
 
-    function showNotice(msg){
-      const el = $("#dataNotice");
-      el.style.display = "block";
-      el.textContent = msg;
-    }
-    function clearNotice(){
-      const el = $("#dataNotice");
-      el.style.display = "none";
-      el.textContent = "";
-    }
-
-    async function loadData({ bustCache=false } = {}){
-      const url = bustCache ? `${DATA_URL}?v=${Date.now()}` : DATA_URL;
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error(`Failed to load ${DATA_URL} (${res.status})`);
-      return res.json();
+    function setKpis(data) {
+      const topSkill = data.kpis.top_skills?.[0]?.skill || '--';
+      const fastSkill = data.kpis.fastest_growing?.[0]?.skill || '--';
+      document.getElementById('kpiTotal').textContent = (data.kpis.total_postings || 0).toLocaleString();
+      document.getElementById('kpiChange').textContent = `${(data.kpis.pct_change_prev_window || 0).toFixed(1)}%`;
+      document.getElementById('kpiTopSkill').textContent = topSkill;
+      document.getElementById('kpiFastest').textContent = fastSkill;
+      document.getElementById('lastUpdated').textContent = `Last updated: ${new Date(data.as_of).toLocaleString()}`;
     }
 
-    function pickLensData(raw, lens){
-      // Accept a few flexible shapes so your file can evolve without breaking.
-      // Supported shapes:
-      // 1) raw.lenses[lensKey] object
-      // 2) raw[lensKey] object
-      // 3) raw (already lens-specific)
-      if (!raw) return null;
-
-      const key = lens || "all";
-      if (raw.lenses && raw.lenses[key]) return raw.lenses[key];
-      if (raw[key] && typeof raw[key] === "object") return raw[key];
-      return raw;
-    }
-
-    function applyRegionAdjustments(d, region){
-      // Minimal “filter” behavior without needing the data to be re-queried:
-      // - any: show as-is
-      // - ohky: prefer regional metrics where available
-      // - remote: prefer remote metrics where available
-      // This just changes the KPI emphasis + meta text.
-      const out = structuredClone(d);
-
-      if (region === "ohky"){
-        out._emphasis = "Regional (OH/KY) emphasis";
-      } else if (region === "remote"){
-        out._emphasis = "Remote/telework emphasis";
-      } else {
-        out._emphasis = "All locations";
-      }
-      return out;
-    }
-
-    function destroyChart(ch){
-      if (ch && typeof ch.destroy === "function") ch.destroy();
-      return null;
-    }
-
-    function renderKPIs(d){
-      // Expected (flexible) fields:
-      // d.kpis.aiSharePct
-      // d.kpis.aiShareDeltaPts
-      // d.kpis.sampleN
-      // d.kpis.regionalPct / delta
-      // d.kpis.remotePct / delta
-      // d.kpis.crossDisciplinaryPct / delta
-      // d.kpis.fresh14dCount
-
-      const k = (d && d.kpis) ? d.kpis : {};
-
-      $("#aiShareValue").textContent = fmtPct(k.aiSharePct);
-      $("#aiShareDelta").textContent = (k.aiShareDeltaPts != null) ? `▲ ${k.aiShareDeltaPts} pts` : "▲ — pts";
-
-      $("#sampleValue").textContent = fmtNum(k.sampleN);
-      $("#sampleNote").textContent = "Deduped across sources";
-
-      $("#regionalValue").textContent = fmtPct(k.regionalPct);
-      $("#regionalDelta").textContent = (k.regionalDeltaPts != null) ? `▲ ${k.regionalDeltaPts} pts` : "▲ — pts";
-
-      $("#remoteValue").textContent = fmtPct(k.remotePct);
-      $("#remoteDelta").textContent = (k.remoteDeltaPts != null) ? `▲ ${k.remoteDeltaPts} pts` : "▲ — pts";
-
-      $("#nonDevValue").textContent = fmtPct(k.crossDisciplinaryPct);
-      $("#nonDevDelta").textContent = (k.crossDisciplinaryDeltaPts != null) ? `▲ ${k.crossDisciplinaryDeltaPts} pts` : "▲ — pts";
-
-      $("#freshValue").textContent = fmtNum(k.fresh14dCount);
-      $("#freshDelta").textContent = "▲ count";
-    }
-
-    function renderTrend(d){
-      const ctx = $("#trendChart");
-      charts.trend = destroyChart(charts.trend);
-
-      const t = d.trend || {};
-      const labels = t.labels || [];
-      const values = t.values || [];
-
-      charts.trend = new Chart(ctx, {
-        type: "line",
+    function drawChart(id, type, labels, values, label) {
+      if (charts[id]) charts[id].destroy();
+      charts[id] = new Chart(document.getElementById(id), {
+        type,
         data: {
           labels,
-          datasets: [{
-            label: "AI-matched postings",
-            data: values,
-            tension: 0.25,
-            pointRadius: 2
-          }]
+          datasets: [{ label, data: values, backgroundColor: '#FFC72C', borderColor: '#a67f00', borderWidth: 1 }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { mode: "index", intersect: false }
-          },
-          interaction: { mode: "index", intersect: false },
-          scales: {
-            y: { beginAtZero: true, ticks: { precision: 0 } }
-          }
-        }
+        options: { responsive: true, maintainAspectRatio: false }
       });
-
-      $("#trendMeta").textContent = d._emphasis ? `Monthly counts (${d._emphasis})` : "Monthly counts (within selected lens)";
     }
 
-    function renderSkills(d){
-      const ctx = $("#skillsChart");
-      charts.skills = destroyChart(charts.skills);
+    function render(data) {
+      document.getElementById('errorState').style.display = 'none';
+      const hasData = data?.kpis?.top_skills?.length || data?.kpis?.top_job_families?.length;
+      document.getElementById('emptyState').style.display = hasData ? 'none' : 'block';
 
-      const s = d.skills || {};
-      // skills: [{label, value}] or separate arrays
-      let labels = [];
-      let values = [];
+      setKpis(data);
 
-      if (Array.isArray(s.items)){
-        labels = s.items.map(x => x.label);
-        values = s.items.map(x => x.value);
-      } else {
-        labels = s.labels || [];
-        values = s.values || [];
-      }
+      const skills = data.kpis.top_skills || [];
+      drawChart('skillsBar', 'bar', skills.map(s => s.skill), skills.map(s => s.count), 'Demand count');
 
-      charts.skills = new Chart(ctx, {
-        type: "bar",
+      // Trendline fallback: use fastest_growing sorted by count as a compact trend proxy from aggregate table.
+      const trend = (data.kpis.fastest_growing || []).slice().sort((a, b) => a.count - b.count);
+      drawChart('skillsTrend', 'line', trend.map(t => t.skill), trend.map(t => t.count), 'Recent weekly demand proxy');
+
+      const families = data.kpis.top_job_families || [];
+      drawChart('familiesBar', 'bar', families.map(f => f.family), families.map(f => f.count), 'Postings');
+
+      const gap = data.kpis.gap_chart || [];
+      if (charts['gapBar']) charts['gapBar'].destroy();
+      charts['gapBar'] = new Chart(document.getElementById('gapBar'), {
+        type: 'bar',
         data: {
-          labels,
-          datasets: [{
-            label: "Mentions",
-            data: values
-          }]
+          labels: gap.map(g => g.skill),
+          datasets: [
+            { label: 'Demand', data: gap.map(g => g.demand), backgroundColor: '#FFC72C' },
+            { label: 'Coverage', data: gap.map(g => g.coverage), backgroundColor: '#424242' }
+          ]
         },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { mode: "nearest", intersect: true }
-          },
-          scales: {
-            x: { beginAtZero: true, ticks: { precision: 0 } }
-          }
-        }
-      });
-
-      $("#skillsMeta").textContent = "Counts of skill phrases from postings (mentions, not endorsements)";
-    }
-
-    function renderCategories(d){
-      const ctx = $("#catsChart");
-      charts.cats = destroyChart(charts.cats);
-
-      const c = d.categories || {};
-      let labels = [];
-      let values = [];
-
-      if (Array.isArray(c.items)){
-        labels = c.items.map(x => x.label);
-        values = c.items.map(x => x.value);
-      } else {
-        labels = c.labels || [];
-        values = c.values || [];
-      }
-
-      charts.cats = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [{
-            label: "Postings",
-            data: values
-          }]
-        },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { mode: "nearest", intersect: true }
-          },
-          scales: {
-            x: { beginAtZero: true, ticks: { precision: 0 } }
-          }
-        }
+        options: { responsive: true, maintainAspectRatio: false }
       });
     }
 
-    function renderLastRefresh(raw){
-      // Flexible timestamp support
-      const ts = raw.lastRefreshISO || raw.lastUpdatedISO || raw.generatedAt || raw.updatedAt || null;
-      state.lastUpdatedISO = ts;
-      $("#lastRefresh").textContent = `Last refresh: ${ts ? new Date(ts).toLocaleString() : "—"}`;
-    }
-
-    function openModal(title, html){
-      const modal = $("#modal");
-      $("#modalTitle").textContent = title;
-      $("#modalBody").innerHTML = html;
-      modal.showModal();
-    }
-
-    function wireHelp(){
-      document.addEventListener("click", (e) => {
-        const t = e.target;
-        if (!(t instanceof HTMLElement)) return;
-
-        if (t.id === "btnPrint"){
-          window.print();
-          return;
-        }
-        if (t.id === "modalClose"){
-          $("#modal").close();
-          return;
-        }
-        if (t.id === "btnMethods"){
-          openModal("Methods & Sources (transparent + academic-friendly)", `
-            <p><strong>What this measures:</strong> Employer language signals in job titles/descriptions. Results are directional signals, not an official labor taxonomy.</p>
-            <ul>
-              <li><strong>Sources:</strong> Blended coverage across public (USAJOBS), private-sector breadth (Adzuna), and remote-first roles (Remotive).</li>
-              <li><strong>Deduping:</strong> We remove duplicates across feeds to avoid inflated counts.</li>
-              <li><strong>Interpretation:</strong> Mentions indicate relevance; they are not endorsements of a specific tool or vendor.</li>
-              <li><strong>Positive NKU framing:</strong> AI Literacy = clarity, integrity, verification, ethics, and workplace readiness.</li>
-            </ul>
-            <p class="tiny">If you want, add links here to your repo README / data definitions for full transparency.</p>
-          `);
-          return;
-        }
-        if (t.id === "btnSkillsMap"){
-          openModal("Skill map (example structure)", `
-            <p>This dashboard can publish its exact keyword/phrase map for transparency. If your <code>data.json</code> includes <code>skillMap</code>, it will appear here.</p>
-            <p><strong>Recommended categories for an AI Literacy baseline:</strong></p>
-            <ul>
-              <li>Prompting &amp; iterative refinement</li>
-              <li>Verification &amp; source checking</li>
-              <li>Data literacy &amp; evaluation</li>
-              <li>Responsible use (privacy, bias, IP, disclosure)</li>
-              <li>Applied tools (spreadsheets, coding copilots, analytics)</li>
-            </ul>
-          `);
-          return;
-        }
-        if (t.dataset && t.dataset.help){
-          const key = t.dataset.help;
-          const help = {
-            aiShare: `<p><strong>AI-signal share</strong> is the portion of postings in the selected lens that match a transparent AI keyword filter.</p>
-                     <p class="tiny">Use it as a conversation starter: “AI language is increasingly normal—NKU can teach it responsibly.”</p>`,
-            sample: `<p><strong>AI postings (sample)</strong> is the deduped count of postings matching the AI filter across blended sources.</p>`,
-            regional: `<p><strong>Regional relevance</strong> estimates how many AI postings show OH/KY signals (Cincy/NKY + statewide).</p>`,
-            remote: `<p><strong>Remote opportunity</strong> reflects postings marked remote/telework—useful for internships and pipeline building.</p>`,
-            nonDev: `<p><strong>Cross-disciplinary share</strong> is a proxy for AI needs outside software/data categories.</p>
-                     <p class="tiny">This supports the message: AI Literacy belongs across colleges.</p>`,
-            fresh: `<p><strong>New postings (14 days)</strong> provides a short-term pulse for what employers are asking for right now.</p>`
-          };
-          openModal("KPI details", help[key] || "<p>—</p>");
-        }
-      });
-    }
-
-    async function refresh({ bustCache=false } = {}){
-      clearNotice();
-      $("#blendStatus").textContent = "Blend status: loading…";
-
-      try{
-        const raw = await loadData({ bustCache });
-        state.raw = raw;
-
-        renderLastRefresh(raw);
-
-        const lens = $("#lensSelect").value;
-        const region = $("#regionSelect").value;
-        state.lens = lens;
-        state.region = region;
-
-        let d = pickLensData(raw, lens);
-        d = applyRegionAdjustments(d, region);
-
-        // Guard: if charts expect arrays, ensure we have at least empty defaults
-        d.kpis = d.kpis || {};
-        d.trend = d.trend || { labels: [], values: [] };
-        d.skills = d.skills || { items: [] };
-        d.categories = d.categories || { items: [] };
-
-        renderKPIs(d);
-        renderTrend(d);
-        renderSkills(d);
-        renderCategories(d);
-
-        $("#blendStatus").textContent = "Blend status: ready ✓";
-      } catch(err){
-        console.error(err);
-        $("#blendStatus").textContent = "Blend status: couldn’t load data";
-        showNotice(
-          "Data didn’t load on this device. This is usually a missing/renamed data file in the repo, a cached older path, or a GitHub Pages build delay. " +
-          "Confirm your data file exists at: " + DATA_URL + " (case-sensitive)."
-        );
-
-        // Render empty-but-stable charts so the page still feels “positive” and not broken
-        const empty = {
-          _emphasis: "All locations",
-          kpis: {},
-          trend: { labels: [], values: [] },
-          skills: { items: [] },
-          categories: { items: [] }
-        };
-        renderKPIs(empty);
-        renderTrend(empty);
-        renderSkills(empty);
-        renderCategories(empty);
+    async function refresh() {
+      const region = document.getElementById('regionSelect').value;
+      const windowDays = document.getElementById('windowSelect').value;
+      try {
+        const payload = await fetchDashboard(region, windowDays);
+        render(payload);
+      } catch (err) {
+        document.getElementById('errorState').style.display = 'block';
+        document.getElementById('errorState').textContent = `Unable to load dashboard summary: ${err.message}`;
       }
     }
 
-    function wireControls(){
-      $("#btnRefresh").addEventListener("click", () => refresh({ bustCache:true }));
-      $("#lensSelect").addEventListener("change", () => refresh({ bustCache:false }));
-      $("#regionSelect").addEventListener("change", () => refresh({ bustCache:false }));
-    }
+    document.getElementById('refreshBtn').addEventListener('click', refresh);
+    document.getElementById('regionSelect').addEventListener('change', refresh);
+    document.getElementById('windowSelect').addEventListener('change', refresh);
 
-    // Init
-    wireHelp();
-    wireControls();
-    refresh({ bustCache:false });
+    refresh();
+    setInterval(refresh, 10 * 60 * 1000);
   </script>
 </body>
 </html>
